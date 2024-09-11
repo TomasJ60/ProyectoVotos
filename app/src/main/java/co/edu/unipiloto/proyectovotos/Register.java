@@ -40,8 +40,8 @@ public class Register extends AppCompatActivity {
         mPhone = findViewById(R.id.phone);
         mlocalidad = findViewById(R.id.localidad);
         mbarrio = findViewById(R.id.barrio);
-        mRegisterbtn = findViewById(R.id.registerBtn);
-        mLoginBtn = findViewById(R.id.Loginbtn);
+        mRegisterbtn = findViewById(R.id.Btnlogin);
+        mLoginBtn = findViewById(R.id.registerbtn);
 
         fAuth = FirebaseAuth.getInstance();
 
@@ -84,7 +84,12 @@ public class Register extends AppCompatActivity {
             }
         });
 
-
+        mLoginBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), Login.class));
+            }
+        });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
