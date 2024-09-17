@@ -4,19 +4,32 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
 public class HomeActivity extends AppCompatActivity {
 
     private Button mlogout,button;
+    TextView fullname, email, phone, localidad, barrio;
+
+    FirebaseAuth fAuth;
+    FirebaseFirestore fStore;
+
+    String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +37,27 @@ public class HomeActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
 
+        fullname = findViewById(R.id.profileName);
+        email = findViewById(R.id.profileEmail);
+        phone = findViewById(R.id.profilePhone);
+        localidad = findViewById(R.id.profileLocalidad);
+        barrio = findViewById(R.id.profileBarrio);
 
+        fAuth = FirebaseAuth.getInstance();
+        fStore = FirebaseFirestore.getInstance();
+        userId = fAuth.getCurrentUser().getUid();
+
+        DocumentReference documentReference = fStore.collection("users").document(userId);
+        documentReference.addSnapshotListener(this, new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException error) {
+                fullname.setText(documentSnapshot.getString("fName"));
+                email.setText(documentSnapshot.getString("email"));
+                phone.setText(documentSnapshot.getString("phone"));
+                localidad.setText(documentSnapshot.getString("localidad"));
+                barrio.setText(documentSnapshot.getString("barrio"));
+            }
+        });
 
         button = findViewById(R.id.button);
         mlogout = findViewById(R.id.logout);

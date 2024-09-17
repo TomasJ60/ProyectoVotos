@@ -28,7 +28,7 @@ public class Login extends AppCompatActivity {
 
     EditText mEmail, mPassword;
     Button mRLogin;
-    TextView mRegisterBtn,forgotTextLink;
+    TextView mRegisterBtn,forgotTextLink, mplanetbtn;
     FirebaseAuth fAuth;
 
     @Override
@@ -42,7 +42,9 @@ public class Login extends AppCompatActivity {
         mPassword = findViewById(R.id.password);
         mRLogin = findViewById(R.id.Btnlogin);
         mRegisterBtn = findViewById(R.id.registerbtn);
+        mplanetbtn = findViewById(R.id.planerbtn);
         forgotTextLink = findViewById(R.id.forgotPassword);
+
         fAuth = FirebaseAuth.getInstance();
 
         mRLogin.setOnClickListener(new View.OnClickListener() {
@@ -83,7 +85,14 @@ public class Login extends AppCompatActivity {
         mRegisterBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), Register.class));
+                startActivity(new Intent(getApplicationContext(), RegisterVotante.class));
+            }
+        });
+
+        mplanetbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), RegisterProyectos.class));
             }
         });
 
