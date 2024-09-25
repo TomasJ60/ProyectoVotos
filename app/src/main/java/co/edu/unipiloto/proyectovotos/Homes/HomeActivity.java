@@ -1,4 +1,4 @@
-package co.edu.unipiloto.proyectovotos;
+package co.edu.unipiloto.proyectovotos.Homes;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -21,9 +21,13 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
+import co.edu.unipiloto.proyectovotos.iniciodesesion.Login;
+import co.edu.unipiloto.proyectovotos.R;
+import co.edu.unipiloto.proyectovotos.propuestas.VerPropuestasdelocalidades;
+
 public class HomeActivity extends AppCompatActivity {
 
-    private Button mlogout,button;
+    private Button mlogout,button, mverpropuestas;
     TextView fullname, email, phone, localidad, barrio;
 
     FirebaseAuth fAuth;
@@ -42,6 +46,8 @@ public class HomeActivity extends AppCompatActivity {
         phone = findViewById(R.id.profilePhone);
         localidad = findViewById(R.id.profileLocalidad);
         barrio = findViewById(R.id.profileBarrio);
+
+        mverpropuestas = findViewById(R.id.buttonVerPropuestas);
 
         fAuth = FirebaseAuth.getInstance();
         fStore = FirebaseFirestore.getInstance();
@@ -78,6 +84,13 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(new Intent(HomeActivity.this, Login.class));
                 Toast.makeText(HomeActivity.this, "Logged out successfully", Toast.LENGTH_SHORT).show();
                 finish();
+            }
+        });
+
+        mverpropuestas.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(HomeActivity.this, VerPropuestasdelocalidades.class));
             }
         });
 

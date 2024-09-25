@@ -1,4 +1,4 @@
-package co.edu.unipiloto.proyectovotos;
+package co.edu.unipiloto.proyectovotos.iniciodesesion;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,11 +18,23 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import co.edu.unipiloto.proyectovotos.Homes.HomeActivity;
+import co.edu.unipiloto.proyectovotos.Homes.HomeProyectos;
+import co.edu.unipiloto.proyectovotos.R;
+import co.edu.unipiloto.proyectovotos.Registros.RegisterPlaneadores;
+import co.edu.unipiloto.proyectovotos.Registros.RegisterVotante;
 
 public class Login extends AppCompatActivity {
 
@@ -53,29 +65,70 @@ public class Login extends AppCompatActivity {
                 String email = mEmail.getText().toString().trim();
                 String password = mPassword.getText().toString().trim();
 
-                if (TextUtils.isEmpty(email)){
+                if (TextUtils.isEmpty(email)) {
                     mEmail.setError("Se requiere un email >:(");
                     return;
                 }
-                if (TextUtils.isEmpty(password)){
+                if (TextUtils.isEmpty(password)) {
                     mPassword.setError("Se requiere una contraseña >:(");
                     return;
                 }
-                if (password.length() < 6){
-                    mPassword.setError("Se requiere una contraseña minima de 6 caracteres");
+                if (password.length() < 6) {
+                    mPassword.setError("Se requiere una contraseña mínima de 6 caracteres");
                     return;
                 }
 
-                //autenticar el usuario
-                fAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                // Autenticar el usuario
+                fAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()){
-                            Toast.makeText(Login.this, "Haz ingresado con exito", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(getApplicationContext(), HomeActivity.class));
-                        }else{
-                            Toast.makeText(Login.this, "Error usuario no encontrado" + task.getException(), Toast.LENGTH_SHORT).show();
+                        if (task.isSuccessful()) {
+                            FirebaseUser currentUser = fAuth.getCurrentUser();
+                            String userID = currentUser.getUid();
 
+
+                            FirebaseFirestore fstore = FirebaseFirestore.getInstance();
+
+
+                            DocumentReference userDoc = fstore.collection("users").document(userID);
+                            userDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        DocumentSnapshot document = task.getResult();
+                                        if (document.exists()) {
+                                            // El usuario está en "users", redirigir a HomeActivity
+                                            Toast.makeText(Login.this, "Inicio de sesión exitoso como usuario", Toast.LENGTH_SHORT).show();
+                                            startActivity(new Intent(getApplicationContext(), HomeActivity.class)); //se redirige a homeactivity
+                                        } else {
+
+                                            DocumentReference proyectosDoc = fstore.collection("registroProyectos").document(userID);
+                                            proyectosDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                    if (task.isSuccessful()) {
+                                                        DocumentSnapshot proyectoDoc = task.getResult();
+                                                        if (proyectoDoc.exists()) {
+                                                            // El usuario está en "registroProyectos", redirigir a HomeProyectos
+                                                            Toast.makeText(Login.this, "Inicio de sesión exitoso como entidad de proyectos", Toast.LENGTH_SHORT).show();
+                                                            startActivity(new Intent(getApplicationContext(), HomeProyectos.class));
+                                                        } else {
+                                                            // No está en ninguna colección
+                                                            Toast.makeText(Login.this, "Error: usuario no encontrado en ninguna categoría", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    } else {
+                                                        Toast.makeText(Login.this, "Error al verificar en registroProyectos: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                        Toast.makeText(Login.this, "Error al verificar en users: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+                        } else {
+                            Toast.makeText(Login.this, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -92,7 +145,7 @@ public class Login extends AppCompatActivity {
         mplanetbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), RegisterProyectos.class));
+                startActivity(new Intent(getApplicationContext(), RegisterPlaneadores.class));
             }
         });
 

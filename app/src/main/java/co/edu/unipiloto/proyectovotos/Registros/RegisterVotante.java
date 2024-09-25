@@ -1,6 +1,4 @@
-package co.edu.unipiloto.proyectovotos;
-
-import static co.edu.unipiloto.proyectovotos.RegisterProyectos.TAGp;
+package co.edu.unipiloto.proyectovotos.Registros;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,9 +16,6 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -44,6 +39,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import co.edu.unipiloto.proyectovotos.Homes.HomeActivity;
+import co.edu.unipiloto.proyectovotos.iniciodesesion.Login;
+import co.edu.unipiloto.proyectovotos.R;
 
 
 public class RegisterVotante extends AppCompatActivity {
@@ -131,6 +130,23 @@ public class RegisterVotante extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
+
+                            //enviar verificacion de email
+                            FirebaseUser veremail = fAuth.getCurrentUser();
+                            veremail.sendEmailVerification().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+
+                                }
+                            });
+
+
+
                             Toast.makeText(RegisterVotante.this, "Usuario creado exitosamente", Toast.LENGTH_SHORT).show();
                             FirebaseUser user = fAuth.getCurrentUser();
                             if (user != null) {
