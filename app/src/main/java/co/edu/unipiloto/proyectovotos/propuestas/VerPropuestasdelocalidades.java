@@ -37,6 +37,7 @@ import java.util.Locale;
 
 import co.edu.unipiloto.proyectovotos.R;
 import co.edu.unipiloto.proyectovotos.iniciodesesion.Login;
+import co.edu.unipiloto.proyectovotos.votos.votar;
 
 public class VerPropuestasdelocalidades extends AppCompatActivity {
 
@@ -44,6 +45,8 @@ public class VerPropuestasdelocalidades extends AppCompatActivity {
     private Spinner spinnerTitulos;
     private FirebaseAuth fAuth;
     private FirebaseFirestore fStore;
+
+    private Button btnVotar;
 
     // Google Maps
     private GoogleMap mMap;
@@ -65,6 +68,9 @@ public class VerPropuestasdelocalidades extends AppCompatActivity {
         spinnerLocalidades.setAdapter(adapter);
 
         spinnerTitulos = findViewById(R.id.spinnerTitulos);
+
+        btnVotar = findViewById(R.id.btn_votar);
+
         mostrarTitulosPropuestas();
 
         FirebaseUser currentUser = fAuth.getCurrentUser();
@@ -118,6 +124,15 @@ public class VerPropuestasdelocalidades extends AppCompatActivity {
 
         // Inicializar el mapa (suponiendo que Google Maps ya está configurado)
         configurarMapa();
+
+
+        btnVotar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(VerPropuestasdelocalidades.this, votar.class);
+            }
+        });
+
     }
 
     // Método para configurar el mapa
