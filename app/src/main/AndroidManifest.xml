@@ -23,6 +23,18 @@
         android:theme="@style/Theme.ProyectoVotos"
         tools:targetApi="31">
         <activity
+            android:name=".decisor.ProyectosActivity"
+            android:exported="false" />
+        <activity
+            android:name=".decisor.boton_editar"
+            android:exported="false" />
+        <activity
+            android:name=".decisor.boton_Ver"
+            android:exported="false" />
+        <activity
+            android:name=".Homes.HomeAdmin"
+            android:exported="false" />
+        <activity
             android:name=".votos.votacion"
             android:exported="false" />
         <activity

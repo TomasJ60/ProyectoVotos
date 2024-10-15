@@ -31,6 +31,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import co.edu.unipiloto.proyectovotos.Homes.HomeActivity;
+import co.edu.unipiloto.proyectovotos.Homes.HomeAdmin;
 import co.edu.unipiloto.proyectovotos.Homes.HomeProyectos;
 import co.edu.unipiloto.proyectovotos.R;
 import co.edu.unipiloto.proyectovotos.Registros.RegisterPlaneadores;
@@ -75,6 +76,13 @@ public class Login extends AppCompatActivity {
                 }
                 if (password.length() < 6) {
                     mPassword.setError("Se requiere una contraseña mínima de 6 caracteres");
+                    return;
+                }
+
+                if (email.equals("decisor@decisor.com") && password.equals("admin123")) {
+                    // Redirigir a HomeAdmin
+                    Toast.makeText(Login.this, "Inicio de sesión exitoso como administrador", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(getApplicationContext(), HomeAdmin.class));
                     return;
                 }
 
