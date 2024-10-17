@@ -23,22 +23,8 @@
         android:layout_height="wrap_content"
         android:text="Ver" />
 
-    <!-- Botón Editar -->
-    <Button
-        android:id="@+id/buttonEditar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:backgroundTint="#FF5722"
-        android:text="Editar" />
 
-    <!-- Botón Eliminar -->
-    <Button
-        android:id="@+id/buttonEliminar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:backgroundTint="#F44336"
-        android:text="Eliminar" />
+
+
 
 </LinearLayout>

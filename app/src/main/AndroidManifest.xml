@@ -23,7 +23,7 @@
         android:theme="@style/Theme.ProyectoVotos"
         tools:targetApi="31">
         <activity
-            android:name=".decisor.ProyectosActivity"
+            android:name=".decisor.boton_eliminar"
             android:exported="false" />
         <activity
             android:name=".decisor.boton_editar"

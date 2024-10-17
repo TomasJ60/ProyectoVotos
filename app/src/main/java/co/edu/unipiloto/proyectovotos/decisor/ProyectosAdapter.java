@@ -1,5 +1,6 @@
 package co.edu.unipiloto.proyectovotos.decisor;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -61,12 +62,36 @@ public class ProyectosAdapter extends RecyclerView.Adapter<ProyectosAdapter.Proy
             });
         });
 
-        // Configura el click listener para el botón Editar
-        holder.buttonEditar.setOnClickListener(v -> {
-            Intent intent = new Intent(holder.itemView.getContext(), boton_editar.class);
-            intent.putExtra("idProyecto", proyecto.getId());  // Pasa el ID del documento de Firestore
-            context.startActivity(intent);
-        });
+
+//        holder.buttonEditar.setOnClickListener(v -> {
+//            String nombreProyecto = proyecto.getTitulo();
+//            obtenerIdProyecto(nombreProyecto, idProyecto -> {
+//                if (idProyecto != null) {
+//                    Intent intent = new Intent(holder.itemView.getContext(), boton_editar.class);
+//                    intent.putExtra("idProyecto", idProyecto);  // ID del proyecto
+//                    intent.putExtra("nombreProyecto", nombreProyecto);  // Nombre del proyecto
+//                    ((Activity) context).startActivityForResult(intent, 1);  // Usa startActivityForResult para editar
+//                } else {
+//                    Toast.makeText(context, "No se encuentra el id del proyecto para editar", Toast.LENGTH_SHORT).show();
+//                }
+//            });
+//        });
+
+        // Configura el click listener para el botón Eliminar
+//        holder.buttonEliminar.setOnClickListener(v -> {
+//            String nombreProyecto = proyecto.getTitulo();
+//            obtenerIdProyecto(nombreProyecto, idProyecto -> {
+//                if (idProyecto != null) {
+//                    Intent intent = new Intent(holder.itemView.getContext(), boton_eliminar.class);
+//                    intent.putExtra("idProyecto", idProyecto);  // ID del proyecto
+//                    intent.putExtra("nombreProyecto", nombreProyecto);  // Nombre del proyecto
+//                    ((Activity) context).startActivityForResult(intent, 2);  // Usa startActivityForResult para eliminar
+//                } else {
+//                    Toast.makeText(context, "No se encuentra el id del proyecto para eliminar", Toast.LENGTH_SHORT).show();
+//                }
+//            });
+//        });
+
     }
 
     private void obtenerIdProyecto(String nombreProyecto, OnIdProyectoListener listener) {
@@ -111,13 +136,14 @@ public class ProyectosAdapter extends RecyclerView.Adapter<ProyectosAdapter.Proy
     public static class ProyectoViewHolder extends RecyclerView.ViewHolder {
         TextView textViewTitulo;
         Button buttonVer;
-        Button buttonEditar;
-
+        //Button buttonEditar;
+        //Button buttonEliminar;
         public ProyectoViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewTitulo = itemView.findViewById(R.id.textViewTituloProyecto); // Título del proyecto
             buttonVer = itemView.findViewById(R.id.buttonVer); // Botón Ver en item_proyecto.xml
-            buttonEditar = itemView.findViewById(R.id.buttonEditar); // Botón Editar en item_proyecto.xml
+            //buttonEditar = itemView.findViewById(R.id.buttonEditar); // Botón Editar en item_proyecto.xml
+            //buttonEliminar = itemView.findViewById(R.id.buttonEliminar); // Botón Eliminar en item_proyecto.xml
         }
     }
 }

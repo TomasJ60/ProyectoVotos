@@ -1,8 +1,10 @@
 package co.edu.unipiloto.proyectovotos.decisor;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
@@ -11,6 +13,10 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -18,6 +24,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import java.util.ArrayList;
+import java.util.List;
 
 import co.edu.unipiloto.proyectovotos.R;
 import co.edu.unipiloto.proyectovotos.votos.Proyecto;
@@ -28,6 +36,9 @@ public class boton_Ver extends AppCompatActivity {
     FirebaseAuth fAuth;
     FirebaseFirestore fStore;
     String proyectoId;
+
+    private PieChart pieChart;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +54,8 @@ public class boton_Ver extends AppCompatActivity {
         tvVotosFavor = findViewById(R.id.tvVotosFavor);
         tvVotosContra = findViewById(R.id.tvVotosContra);
         tvVotoBlanco = findViewById(R.id.tvVotoBlanco);
+
+        pieChart = findViewById(R.id.pieChart);
 
         // Inicializar Firebase Auth y Firestore
         fAuth = FirebaseAuth.getInstance();
@@ -64,6 +77,7 @@ public class boton_Ver extends AppCompatActivity {
         // Cargar datos del proyecto
         cargarDatosProyecto(proyectoId);
         cargarDatosVotacion(nombreProyecto);
+        mostrarVotosProyecto(nombreProyecto);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -137,8 +151,7 @@ public class boton_Ver extends AppCompatActivity {
                     Log.d("Votacion", "El documento no contiene el campo 'voto': " + document.getId());
                 }
             }
-
-            // Actualizar los TextViews con los resultados
+            
             tvTotalVotos.setText(String.valueOf(totalVotos));
             tvVotosFavor.setText(String.valueOf(votosFavor));
             tvVotosContra.setText(String.valueOf(votosContra));
@@ -154,6 +167,66 @@ public class boton_Ver extends AppCompatActivity {
         });
     }
 
+    private void mostrarVotosProyecto(String tituloProyecto) {
+        fStore.collection("registroVotacion")
+                .whereEqualTo("ProyectoVoto", tituloProyecto)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+                        int votosSi = 0;
+                        int votosNo = 0;
+                        int votosBlanco = 0;
 
+                        for (DocumentSnapshot document : task.getResult()) {
+                            String voto = document.getString("voto");
+                            if ("si".equalsIgnoreCase(voto)) {
+                                votosSi++;
+                            } else if ("no".equalsIgnoreCase(voto)) {
+                                votosNo++;
+                            } else if ("blanco".equalsIgnoreCase(voto)) {
+                                votosBlanco++;
+                            }
+                        }
+
+                        // Calcular el total de votos
+                        int totalVotos = votosSi + votosNo + votosBlanco;
+
+                        // Evitar división por cero si no hay votos
+                        if (totalVotos == 0) {
+                            Toast.makeText(this, "No se han registrado votos aún", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        // Calcular los porcentajes
+                        float porcentajeSi = (votosSi / (float) totalVotos) * 100;
+                        float porcentajeNo = (votosNo / (float) totalVotos) * 100;
+                        float porcentajeBlanco = (votosBlanco / (float) totalVotos) * 100;
+
+                        // Crear la gráfica de pastel con porcentajes
+                        List<PieEntry> entries = new ArrayList<>();
+                        entries.add(new PieEntry(porcentajeSi, "Sí (" + String.format("%.1f", porcentajeSi) + "%)"));
+                        entries.add(new PieEntry(porcentajeNo, "No (" + String.format("%.1f", porcentajeNo) + "%)"));
+                        entries.add(new PieEntry(porcentajeBlanco, "Blanco (" + String.format("%.1f", porcentajeBlanco) + "%)"));
+
+                        // Crear una lista de colores personalizados
+                        ArrayList<Integer> colors = new ArrayList<>();
+                        colors.add(Color.parseColor("#4CAF50")); // Verde para Sí
+                        colors.add(Color.parseColor("#F44336")); // Rojo para No
+                        colors.add(Color.parseColor("#FFEB3B")); // Amarillo para Blanco
+
+                        PieDataSet dataSet = new PieDataSet(entries, "Resultados de la votación");
+                        dataSet.setColors(colors); // Asigna los colores personalizados
+
+                        PieData pieData = new PieData(dataSet);
+                        pieChart.setData(pieData);
+                        pieChart.invalidate();
+                    } else {
+                        Toast.makeText(this, "No se encontraron votos para este proyecto", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error obteniendo los votos: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
 }
 
