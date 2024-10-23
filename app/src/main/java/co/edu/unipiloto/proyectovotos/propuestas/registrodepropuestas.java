@@ -7,6 +7,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -30,6 +31,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -51,6 +54,12 @@ public class registrodepropuestas extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
+    //Poner el tiempo
+    private EditText editTextTiempoMinutos;
+    private DatePicker datePicker;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +76,11 @@ public class registrodepropuestas extends AppCompatActivity {
         editTextDescripcion = findViewById(R.id.editTextDescripcion);
         buttonImage = findViewById(R.id.buttonImage);
         buttonPublicar = findViewById(R.id.buttonPublicar);
+
+        //tiempo de el proyecto
+        editTextTiempoMinutos = findViewById(R.id.editTextTiempoMinutos);
+        datePicker = findViewById(R.id.datePicker);
+
 
         cargarDatosRegistroProyectos();
 
@@ -87,6 +101,12 @@ public class registrodepropuestas extends AppCompatActivity {
             String titulo = editTextTitulo.getText().toString();
             String descripcion = editTextDescripcion.getText().toString();
 
+            //tiempo de votacion
+            int day = datePicker.getDayOfMonth();
+            int month = datePicker.getMonth(); // Recuerda que el mes es 0-indexado
+            int year = datePicker.getYear();
+            int duracionMin = Integer.parseInt(editTextTiempoMinutos.getText().toString());
+
             if (titulo.isEmpty()) {
                 Toast.makeText(registrodepropuestas.this, "Se requiere llenar el campo del título", Toast.LENGTH_LONG).show();
                 return;
@@ -98,9 +118,10 @@ public class registrodepropuestas extends AppCompatActivity {
             }
 
             // Guardar los datos de la propuesta
-            guardarDatosRegistroPropuesta(titulo, descripcion);
+            guardarDatosRegistroPropuesta(titulo, descripcion, duracionMin, year, month, day);
+
             Intent votacionIntent = new Intent(registrodepropuestas.this, votacion.class);
-            votacionIntent.putExtra("proyectoTitulo", titulo); // Pasar el título del proyecto
+            votacionIntent.putExtra("proyectoTitulo", titulo);
             startActivity(votacionIntent);
         });
 
@@ -176,15 +197,31 @@ public class registrodepropuestas extends AppCompatActivity {
     }
 
 
-    private void guardarDatosRegistroPropuesta(String titulo, String descripcion) {
+    private void guardarDatosRegistroPropuesta(String titulo, String descripcion, int duracionMin, int year, int month, int day) {
+        // Validar que la duración en minutos sea positiva
+        if (duracionMin <= 0) {
+            Toast.makeText(this, "La duración debe ser mayor a cero minutos", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         Map<String, Object> propuesta = new HashMap<>();
         propuesta.put("titulo", titulo);
         propuesta.put("descripcion", descripcion);
-        propuesta.put("fname", fname); // Añade fname
+        propuesta.put("fname", fname);
         propuesta.put("barrio", barrio);
         propuesta.put("localidad", localidad);
         propuesta.put("entidad", entidad);
         propuesta.put("imagenUrl", imageUrl);
+
+        // Calcular el tiempo límite para votar
+        Calendar cal = Calendar.getInstance();
+        cal.set(year, month, day);
+        Date fechaInicio = cal.getTime();
+        propuesta.put("fechaInicio", fechaInicio);
+
+        cal.add(Calendar.MINUTE, duracionMin);
+        Date votingDeadline = cal.getTime();
+        propuesta.put("votingDeadline", votingDeadline);
 
         db.collection("registroPropuesta").add(propuesta)
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
@@ -201,6 +238,5 @@ public class registrodepropuestas extends AppCompatActivity {
                     }
                 });
     }
-
 
 }

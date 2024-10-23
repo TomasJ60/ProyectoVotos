@@ -14,8 +14,10 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.storage.FirebaseStorage;
@@ -33,8 +35,9 @@ import co.edu.unipiloto.proyectovotos.R;
         private FirebaseAuth mAuth;
         private TextView tvPuesto, tvDireccionC, tvLocalidadC, tvTituloProyecto;
         private RadioButton rdSi, rdNo, rdBlanco;
-        private Button btnVotar;
+        private Button btnVotar, btnModificarVoto;
         private String nombreUsuario, puestoVotacion, direccionCiudadano, localidadCiudadano, proyectoTitulo, voto;
+
 
         @Override
         protected void onCreate(Bundle savedInstanceState) {
@@ -86,11 +89,11 @@ import co.edu.unipiloto.proyectovotos.R;
             rdNo = findViewById(R.id.rdNo);
             rdBlanco = findViewById(R.id.rdBlanco);
             btnVotar = findViewById(R.id.btnVotar);
-
+            btnModificarVoto = findViewById(R.id.btnModificarVoto);
 
             cargarDatosUsuario();
-
-            btnVotar.setOnClickListener(view -> registrarVoto());
+            btnVotar.setOnClickListener(view -> verificarTiempoLimiteYRegistrarVoto(false));
+            btnModificarVoto.setOnClickListener(view -> verificarTiempoLimiteYRegistrarVoto(true));
         }
 
         private void cargarDatosUsuario() {
@@ -146,9 +149,33 @@ import co.edu.unipiloto.proyectovotos.R;
             }
         }
 
+        private void verificarTiempoLimiteYRegistrarVoto(boolean isModifying) {
+            String proyectoId = proyectoTitulo;
+            long tiempoActual = System.currentTimeMillis();
+            db.collection("registroPropuesta").whereEqualTo("titulo", proyectoId).get().addOnSuccessListener(querySnapshot -> {
+                if (!querySnapshot.isEmpty()) {
+                    DocumentSnapshot documentSnapshot = querySnapshot.getDocuments().get(0);
+                    Timestamp tiempoLimite = documentSnapshot.getTimestamp("votingDeadline");
+                    if (tiempoLimite != null && tiempoActual < tiempoLimite.toDate().getTime()) {
+                        if (isModifying) {
+                            modificarVoto();
+                        } else {
+                            registrarVoto();
+                        }
+                    } else {
+                        Toast.makeText(votacion.this, "El tiempo para votar ha terminado.", Toast.LENGTH_SHORT).show();
+                        btnVotar.setEnabled(false);
+                        btnModificarVoto.setEnabled(false);
+                    }
+                } else {
+                    Toast.makeText(votacion.this, "No se encontró el proyecto.", Toast.LENGTH_SHORT).show();
+                }
+            }).addOnFailureListener(e -> {
+                Toast.makeText(votacion.this, "Error al verificar el tiempo límite.", Toast.LENGTH_SHORT).show();
+            });
+        }
 
         private void registrarVoto() {
-
             if (rdSi.isChecked()) {
                 voto = "si";
             } else if (rdNo.isChecked()) {
@@ -157,35 +184,52 @@ import co.edu.unipiloto.proyectovotos.R;
                 voto = "en blanco";
             }
 
-
-
-
-            // Comprobar si el usuario ya ha votado
             String userId = mAuth.getCurrentUser().getUid();
-            db.collection("registroVotacion").whereEqualTo("userId", userId).get()
-                    .addOnSuccessListener(queryDocumentSnapshots -> {
-                        if (queryDocumentSnapshots.isEmpty()) {
-                            // No ha votado aún, registrar el voto
-                            Map<String, Object> votacionData = new HashMap<>();
-                            votacionData.put("nombre", nombreUsuario);
-                            votacionData.put("LVotacion", puestoVotacion);
-                            votacionData.put("DireccionCiudadano", direccionCiudadano);
-                            votacionData.put("LocalidadCuidadano", localidadCiudadano);
-                            votacionData.put("ProyectoVoto", proyectoTitulo);
-                            votacionData.put("voto", voto);
-                            votacionData.put("userId", userId); // Asegúrate de incluir el userId
-
-                            db.collection("registroVotacion").add(votacionData)
-                                    .addOnSuccessListener(documentReference -> {
-                                        Toast.makeText(votacion.this, "Voto registrado con éxito", Toast.LENGTH_SHORT).show();
-                                        finish(); // Cerrar la actividad o hacer lo que sea necesario
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(votacion.this, "Error al registrar el voto", Toast.LENGTH_SHORT).show();
-                                    });
-                        } else {
-                            Toast.makeText(votacion.this, "Ya has votado anteriormente.", Toast.LENGTH_SHORT).show();
-                        }
+            db.collection("registroVotacion").whereEqualTo("userId", userId).get().addOnSuccessListener(queryDocumentSnapshots -> {
+                if (queryDocumentSnapshots.isEmpty()) {
+                    Map<String, Object> votacionData = new HashMap<>();
+                    votacionData.put("nombre", nombreUsuario);
+                    votacionData.put("LVotacion", puestoVotacion);
+                    votacionData.put("DireccionCiudadano", direccionCiudadano);
+                    votacionData.put("LocalidadCuidadano", localidadCiudadano);
+                    votacionData.put("ProyectoVoto", proyectoTitulo);
+                    votacionData.put("voto", voto);
+                    votacionData.put("userId", userId);
+                    db.collection("registroVotacion").add(votacionData).addOnSuccessListener(documentReference -> {
+                        Toast.makeText(votacion.this, "Voto registrado con éxito", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(votacion.this, "Error al registrar el voto", Toast.LENGTH_SHORT).show();
                     });
+                } else {
+                    Toast.makeText(votacion.this, "Ya has votado anteriormente.", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
+
+        private void modificarVoto() {
+            if (rdSi.isChecked()) {
+                voto = "si";
+            } else if (rdNo.isChecked()) {
+                voto = "no";
+            } else if (rdBlanco.isChecked()) {
+                voto = "en blanco";
+            }
+
+            String userId = mAuth.getCurrentUser().getUid();
+            db.collection("registroVotacion").whereEqualTo("userId", userId).whereEqualTo("ProyectoVoto", proyectoTitulo).get().addOnSuccessListener(queryDocumentSnapshots -> {
+                if (!queryDocumentSnapshots.isEmpty()) {
+                    DocumentSnapshot documentSnapshot = queryDocumentSnapshots.getDocuments().get(0);
+                    db.collection("registroVotacion").document(documentSnapshot.getId()).update("voto", voto).addOnSuccessListener(aVoid -> {
+                        Toast.makeText(votacion.this, "Voto modificado con éxito", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(votacion.this, "Error al modificar el voto", Toast.LENGTH_SHORT).show();
+                    });
+                } else {
+                    Toast.makeText(votacion.this, "No se encontró un voto anterior para modificar.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
     }
